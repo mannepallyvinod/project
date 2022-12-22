@@ -1,34 +1,23 @@
-node{
-
-   def tomcatWeb = 'D:\\apache-tomcat-9.0.65\\webapps'
-   def tomcatBin = 'D:\\apache-tomcat-9.0.65\\bin'
-   def tomcatStatus = ''
-   stage('SCM Checkout'){
-     git 'https://github.com/mannepallyvinod/project.git'
+pipeline {
+   agent any
+   environment {
+      commands = "C:\\apache-maven-3.8.6\\bin:$commands"
    }
-   stage('Compile-Package-create-jar-file'){
-      // Get maven home path
-      def mvnHome =  tool name: 'Maven', type: 'maven'   
-      bat "${mvnHome}/bin/mvn package"
+   stages {
+      stage('Checkout') {
+         steps {
+            git url: "https://github.com/mannepallyvinod/project.git"
+         }
       }
-/*   stage ('Stop Tomcat Server') {
-               bat ''' @ECHO OFF
-               wmic process list brief | find /i "tomcat" > NUL
-               IF ERRORLEVEL 1 (
-                    echo  Stopped
-               ) ELSE (
-               echo running
-                  "${tomcatBin}\\shutdown.bat"
-                  sleep(time:10,unit:"SECONDS") 
-               )
-'''
-   }*/
-   stage('Deploy to Tomcat'){
-     bat "copy target\\App.jar \"${tomcatWeb}\\App.jar\""
-   }
-      stage ('Start Tomcat Server') {
-         sleep(time:5,unit:"SECONDS") 
-         bat "${tomcatBin}\\startup.bat"
-         sleep(time:100,unit:"SECONDS")
+      stage('Build') {
+         steps {
+            bat "mvn clean install package"
+         }
+      }
+      stage('Deploy') {
+         steps {
+         bat "copy target\\*.jar D:\\apache-tomcat-9.0.65\\webapps"
+         }
+      }
    }
 }
